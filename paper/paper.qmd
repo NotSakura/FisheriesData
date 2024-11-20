@@ -1,0 +1,79 @@
+---
+title: "Predicting the fish hunting population"
+subtitle: ""
+author: 
+  - Shreya Sakura Noskor
+thanks: "Code and data are available at: [https://github.com/NotSakura/FisheriesData.git](https://github.com/NotSakura/FisheriesData.git)."
+date: today
+date-format: long
+abstract: ""
+format:
+  pdf:
+    bibliography: references.bib
+    documentclass: article
+    geometry: margin = 1in
+number-sections: true
+toc: true
+bibliography: references.bib
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(dplyr)
+library(janitor)
+library(lubridate)
+library(broom)
+library(modelsummary)
+library(rstanarm)
+library(knitr)
+```
+
+# Introduction
+
+
+# Data {#sec-data}
+
+## Overview
+
+
+## Methodology and Measurement
+
+
+
+## Data Visualization {#sec-graphs}
+
+
+
+## Outcome and Predictor variables
+
+
+# Model
+
+## Model Step- Up
+
+### Model justification
+
+
+## Model Results
+
+# Results
+
+# Discussion
+
+## Weaknesses and next steps
+
+
+\newpage
+
+\appendix
+
+# Appendix 1
+
+
+# Appendix 2
+
+# References

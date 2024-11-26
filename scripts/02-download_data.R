@@ -1,25 +1,17 @@
 #### Preamble ####
-# Purpose: Downloads and saves the data from [data](https://projects.fivethirtyeight.com/polls/president-general/2024/national/)
-# Author: Sakura Noskor, Yan Mezhiborsky, Cristina Burca
-# Date: 3 November 2024
-# Contact: cristina.burca@mail.utoronto.ca, sakura.noskor@mail.utoronto.ca,  yan.mezhiborsky@mail.utoronto.ca
-# Pre-requisites: go to the site above and search for “Download the data”, then select Presidential general election polls (current cycle), then “Download”
-
-
+# Purpose: Simulates a dataset of Fishing data
+# Author: Sakura Noskor
+# Date: 23 November 2024
+# Contact: sakura.noskor@mail.utoronto.ca
+# Pre-requisites: go to "https://www.npafc.org/statistics/" and look for "NPAFC Catch Statistics (updated 28 June 2024)". Click on that you will get the csv file containing all the data. 
 
 library(tidyverse)
-
-# Load necessary libraries
-library(testthat)
-library(validate)
-library(readr)
 
 
 # Load the simulated data
 #the data is already downloaded in the repository. 
-data <- read.csv("../data/01-raw_data/raw_data.csv")
+data <- read.xlsx('../data/01-raw_data/NPAFC_Catch_Stat-1925-2023.xlsx', sheet = 1) 
 
-#### Save data ####
 
 
 

@@ -1,5 +1,7 @@
 # Analysing the Number of Fish Caught in the North Pacific Ocean
 
+**NOTE**: The file has to been rendered yet due to issues with library but the graphs work! 
+
 ## Overview
 We analyzed data on fish catches in the North Pacific Ocean using Bayesian modeling. Our analysis shows that the number of fish caught has increased over time. This suggests that fishing activities in the region have intensified. Understanding this trend is important for managing fish populations and ensuring the sustainability of the ocean's resources. This is important as the Pacific is full of different kind of fish like, tuna and salmon that are essential in the food chain, but are being overhunted for food and recreational purposes.
 

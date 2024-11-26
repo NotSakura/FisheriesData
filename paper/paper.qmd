@@ -1,12 +1,12 @@
 ---
-title: "Predicting the fish hunting population"
-subtitle: ""
+title: "Analysing the Fish Hunting Numbers in North Pacific Ocean"
+subtitle: "Using Baysian Modeling, to find that number of fish caught has increased"
 author: 
   - Shreya Sakura Noskor
 thanks: "Code and data are available at: [https://github.com/NotSakura/FisheriesData.git](https://github.com/NotSakura/FisheriesData.git)."
 date: today
 date-format: long
-abstract: ""
+abstract: "We analyzed data on fish catches in the North Pacific Ocean using Bayesian modeling. Our analysis shows that the number of fish caught has increased over time. This suggests that fishing activities in the region have intensified. Understanding this trend is important for managing fish populations and ensuring the sustainability of the ocean's resources. This is important as the Pacific is full of different kind of fish like, tuna and salmon that are essential in the food chain, but are being overhunted for food and recreational purposes."
 format:
   pdf:
     bibliography: references.bib
@@ -23,13 +23,53 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
-library(dplyr)
 library(janitor)
+library(readxl)
+library(dplyr)
 library(lubridate)
 library(broom)
 library(modelsummary)
 library(rstanarm)
 library(knitr)
+library(openxlsx)
+```
+
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+data <- read.xlsx('../data/01-raw_data/NPAFC_Catch_Stat-1925-2023.xlsx', sheet = 1) 
+print(data)
+colnames(data) <- data[1, ]
+data <- data[-1, ]
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+cleaned_pac2 <- data %>%
+  filter(`Data Type` == "Number (000's)", `Whole Country/Province/State` == "Whole country", Species == "Total")  %>%
+  select(Country, Species, `Catch Type`, `2022`) %>%
+  filter(!is.na(`2022`) & `2022` != 0)
+
+
+cleaned_pac <- data %>%
+  filter(Species == "Total", `Data Type` == "Number (000's)", `Reporting Area` == "Whole country") %>%
+  filter(!is.na(Country)) %>%
+  filter(!is.na(`1925`) & `1925` != 0) %>%
+  filter(!is.na(`1946`) & `1946` != 0)
+
+
+koreadata <- data %>%
+  filter(Species == "Total", `Data Type` == "Number (000's)", `Reporting Area` == "Whole country", Country == "Korea") %>%
+  filter(!is.na(Country)) 
+
+combined_data <- bind_rows(cleaned_pac, koreadata)
+
 ```
 
 # Introduction
@@ -51,6 +91,7 @@ China, Japan, Russia
 
 ## Data Visualization {#sec-graphs}
 
+we make the assumption that the coulms that say whole country it also include the provinces and different areas number as well. 
 
 
 ## Outcome and Predictor variables
@@ -59,6 +100,151 @@ China, Japan, Russia
 # Model
 
 ## Model Step- Up
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+temp <- cleaned_pac  %>%
+  select(-`Whole Country/Province/State`, -`Data Type`, -`Reporting Area`, -Species, -`Catch Type`)
+temp
+
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+library(tidyr)
+library(dplyr)
+
+# Convert columns that should be years to numeric
+temp <- temp %>%
+  mutate(across(`1925`:`2023`, as.numeric))
+
+long_data <- temp %>%
+  pivot_longer(
+    cols = starts_with("19") | starts_with("20"),  # Select columns starting with "19" or "20"
+    names_to = "Year",
+    values_to = "Catch"
+  ) %>%
+  mutate(Year = as.numeric(Year))
+
+library(rstanarm)
+
+model_formula <- Catch ~ Year + (1 | Country)
+
+bayesian_model <- stan_glmer(
+  formula = model_formula,
+  data = long_data,
+  family = gaussian(),  # Adjust this if using a different distribution for your data
+  prior = normal(0, 2.5, autoscale = TRUE),
+  prior_intercept = normal(0, 2.5, autoscale = TRUE),
+  seed = 123,
+  adapt_delta = 0.95,
+  cores = 4
+)
+
+
+```
+
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+modelsummary(bayesian_model)
+```
+
+
+Model 2
+
+
+
+
+```{r}
+
+library(brms)
+
+# Specify priors
+priors <- c(
+  set_prior("normal(0, 2.5)", class = "Intercept"),   # Prior for the intercept
+  set_prior("normal(0, 2.5)", class = "sd")           # Prior for the standard deviation of random effects (Country)
+)
+
+# Fit the model using brms
+bayesian_model_commercial_brms <- brm(
+  formula = Is_Commercial ~ (1 | Country),  # Random effect for Country
+  data = cleaned_pac2,
+  family = bernoulli(),                    # Bernoulli family for binary outcomes
+  prior = priors,                          # Use the prior argument here
+  seed = 123
+)
+
+# Check the model summary
+modelsummary(bayesian_model_commercial_brms)
+
+
+# Extract random effects using brms
+ranef_bayesian_model_commercial_brms <- ranef(bayesian_model_commercial_brms)
+```
+
+
+the base line probability of having a country that is fishing for commercial purpose is log of 0.838 which is 69.8%. which means that there is 69.8% probability that the country is fishing for commercial purposes, without even knowing the country. 
+
+
+```{r}
+# Extract random effects for Country
+random_effects_df <- as.data.frame(ranef_bayesian_model_commercial_brms$Country)
+
+# Check the column names (they are already known: "Estimate.Intercept", etc.)
+names(random_effects_df)
+
+# Now, plot the distribution of the random intercepts for Country
+library(ggplot2)
+
+ggplot(random_effects_df, aes(x = Estimate.Intercept)) + 
+  geom_histogram(binwidth = 0.1, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(title = "Distribution of Random Intercepts for Country",
+       x = "Random Intercept (Country)",
+       y = "Frequency") +
+  theme_minimal()
+
+
+```
+```{r}
+# Extract random effects for Country
+random_effects_df <- as.data.frame(ranef(bayesian_model_commercial_brms)$Country)
+
+# Add the country names (indexing row names)
+random_effects_df$Country <- rownames(random_effects_df)
+
+# Check the structure to confirm the data is correct
+head(random_effects_df)
+
+# Extract the fixed intercept (the global intercept)
+fixed_intercept <- fixef(bayesian_model_commercial_brms)[1]  # First element corresponds to the intercept
+
+# Add the random intercepts to the fixed intercept to get the log-odds
+random_effects_df$log_odds <- fixed_intercept + random_effects_df$Estimate.Intercept
+
+# Compute predicted probabilities using the log-odds
+random_effects_df$predicted_prob <- 1 / (1 + exp(-random_effects_df$log_odds))
+
+# Plot the predicted probabilities for Commercial catches across countries
+library(ggplot2)
+
+ggplot(random_effects_df, aes(x = Country, y = predicted_prob)) + 
+  geom_bar(stat = "identity", fill = "lightblue", color = "black") +
+  labs(title = "Predicted Probability of Commercial Catch by Country",
+       x = "Country",
+       y = "Predicted Probability") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +  # Rotate country names for readability
+  theme_minimal()
+
+```
 
 ### Model justification
 
@@ -70,7 +256,7 @@ China, Japan, Russia
 # Discussion
 
 ## Weaknesses and next steps
-
+Korea didn't report data until 1969 so they are left out of the first model in general. 
 
 \newpage
 
@@ -79,6 +265,20 @@ China, Japan, Russia
 # Appendix 1
 
 
-# Appendix 2
+# Appendix 2 (datasheet)
+
+**1. For what purpose was the dataset created?**
+The dataset was originally created by North Pacific Anadormous Fish Commission [@npafc_statistics] created this dataset to see how much fishing of trout, tuna and salmon was done in international waters. They strictly prohibits mass fishing of these highly demanded fishes and hense the dataset. We use the dataset to analyse the number of these fishes caught and see if there is a reason for NPAFC to be worried, and if there is a solution to this. 
+
+**2.What do the instances that comprise the dataset represent (for example, documents, photos, people, countries)?**
+The instances of these data is either numeric or catagorical. Thee first couple of columns tells you the country the data is from, where the fishes were hunted as well as getting to specific regions. Why they were hunted and what the unit were, was also in the data set. The majority of the dataset is numbers expressing how much fish was hunted, either in thousands or tonnes. 
+
+**3.Is any information missing from individual instances?**
+There are several instances of data missing. Most are from the number of fishes column as some of the data goes back to 1925 but, not all of them so, there are some rows of data where the total number of fishes collected in 1928, for example, is not present. 
+
+**4.. How was the data associated with each instance acquired? Was the data directly observable (for example, raw text, movie ratings), reported by subjects (for example, survey responses), or indirectly inferred/ derived from other data (for example, part-of-speech tags, model-based guesses for age or language)?**
+
+This dataset was reported by the subjects of each country. Meaning this organisation asked the government of Canada, US, Korea, Russia and Japan, send in the numbers and they compiled this data. 
+
 
 # References

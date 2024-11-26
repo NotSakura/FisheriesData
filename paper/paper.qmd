@@ -37,6 +37,11 @@ library(knitr)
 
 # Data {#sec-data}
 
+
+China, Japan, Russia
+
+
+
 ## Overview
 
 

@@ -6,14 +6,6 @@
     year = {2023},
     url = {https://www.R-project.org/},
   }, 
-@Manual{splines,
-    title = {R: A Language and Environment for Statistical Computing},
-    author = {{R Core Team}},
-    organization = {R Foundation for Statistical Computing},
-    address = {Vienna, Austria},
-    year = {2023},
-    url = {https://www.R-project.org/},
-  }, 
   @Article{modelsummary,
     title = {{modelsummary}: Data and Model Summaries in {R}},
     author = {Vincent Arel-Bundock},
@@ -48,8 +40,50 @@
     year = {2023},
     note = {R package version 2.2.0},
     url = {https://CRAN.R-project.org/package=janitor},
+  }, 
+  @Manual{dplyr,
+    title = {dplyr: A Grammar of Data Manipulation},
+    author = {Hadley Wickham and Romain François and Lionel Henry and Kirill Müller and Davis Vaughan},
+    year = {2023},
+    note = {R package version 1.1.4},
+    url = {https://CRAN.R-project.org/package=dplyr},
   }
-  
+  , 
+  @Manual{rstanarm,
+  title        = {rstanarm: Bayesian Applied Regression Modeling via Stan},
+  author       = {Gabriel A. Cepeda and Jonah Gabry and Ben Goodrich and Sam Brilleman and Imad Ali and Qingyuan Zhao},
+  year         = {2024},
+  note         = {R package version X.Y.Z},
+  url          = {https://mc-stan.org/rstanarm/},
+}, 
+
+ @Manual{openexcel,
+    title = {openxlsx: Read, Write and Edit xlsx Files},
+    author = {Philipp Schauberger and Alexander Walker},
+    year = {2024},
+    note = {R package version 4.2.7.1},
+    url = {https://CRAN.R-project.org/package=openxlsx},
+  }, 
+@Manual{knitr,
+  title        = {knitr: A General-Purpose Package for Dynamic Report Generation in R},
+  author       = {Yihui Xie},
+  year         = {2023},
+  note         = {R package version X.Y.Z},
+  url          = {https://yihui.org/knitr/},
+}, 
+@Article{brms,
+  title        = {brms: An R Package for Bayesian Multilevel Models Using Stan},
+  author       = {Paul-Christian Bürkner},
+  journal      = {Journal of Statistical Software},
+  year         = {2017},
+  volume       = {80},
+  number       = {1},
+  pages        = {1--28},
+  doi          = {10.18637/jss.v080.i01},
+  url          = {https://doi.org/10.18637/jss.v080.i01},
+}
+
+
 
   
 @Article{tidy,
@@ -61,7 +95,15 @@
     number = {43},
     pages = {1686},
     doi = {10.21105/joss.01686},
-  }  
+  } , 
+  
+  @Manual{readxl,
+    title = {readxl: {Read Excel Files}},
+    author = {Hadley Wickham and Jennifer Bryan},
+    year = {2023},
+    note = {R package version 1.4.3},
+    url = {https://CRAN.R-project.org/package=readxl},
+  }
   
  
 
@@ -72,64 +114,10 @@
     year = {2022},
     url = {https://mc-stan.org/rstanarm/},
   }, 
-@misc{fivethirtyeight2024,
-  author       = {FiveThirtyEight},
-  title        = {2024 National Presidential Polls},
+@misc{npafc_statistics,
+  author       = {North Pacific Anadromous Fish Commission (NPAFC)},
+  title        = {Statistics – North Pacific Anadromous Fish Commission},
   year         = {2024},
-  url          = {https://projects.fivethirtyeight.com/polls/president-general/2024/national/},
-  note         = {Accessed: 2024-11-03}
+  url          = {https://www.npafc.org/statistics/},
+  note         = {Accessed: 2024-11-24}
 }
-
-
-  
-@book{tellingstories,
-    title = {Telling Stories with Data},
-    author = {Rohan Alexander},
-    year = {2023},
-    publisher = {Chapman; Hall/CRC},
-    url = {https://tellingstorieswithdata.com/}
-  }  
-  
-  
-  
-@misc{idSurvey,
-  author       = {ID Survey},
-  title        = {Phone Survey},
-  year         = {2024},
-  url          = {https://www.idsurvey.com/en/phone-survey/},
-  note         = {Accessed: 2024-11-03}
-}, 
-
-@inbook{Tourangeau_Rips_Rasinski_2000, place={Cambridge}, title={Respondents’ Understanding of Survey Questions}, booktitle={The Psychology of Survey Response}, publisher={Cambridge University Press}, author={Tourangeau, Roger and Rips, Lance J. and Rasinski, Kenneth}, year={2000}, pages={23–61}}, 
-
-
-@article{annurev,
-   author = "Stantcheva, Stefanie",
-   title = "How to Run Surveys: A Guide to Creating Your Own Identifying Variation and Revealing the Invisible", 
-   journal= "Annual Review of Economics",
-   year = "2023",
-   volume = "15",
-   number = "Volume 15, 2023",
-   pages = "205-234",
-   doi = "https://doi.org/10.1146/annurev-economics-091622-010157",
-   url = "https://www.annualreviews.org/content/journals/10.1146/annurev-economics-091622-010157",
-   publisher = "Annual Reviews",
-   issn = "1941-1391",
-   type = "Journal Article",
-   keywords = "experiments",
-   keywords = "JEL A23",
-   keywords = "JEL D7",
-   keywords = "surveys",
-   keywords = "information",
-   keywords = "JEL A22",
-   keywords = "priming",
-   keywords = "perceptions",
-   keywords = "sampling",
-   keywords = "JEL C8",
-   keywords = "JEL P16",
-   keywords = "beliefs",
-   keywords = "JEL C9",
-   abstract = "Surveys are an essential approach for eliciting otherwise invisible factors such as perceptions, knowledge and beliefs, attitudes, and reasoning. These factors are critical determinants of social, economic, and political outcomes. Surveys are not merely a research tool. They are also not only a way of collecting data. Instead, they involve creating the process that will generate the data. This allows the researcher to create their own identifying and controlled variation. Thanks to the rise of mobile technologies and platforms, surveys offer valuable opportunities either to study broadly representative samples or to focus on specific groups. This article offers guidance on the complete survey process, from the design of the questions and experiments to the recruitment of respondents and the collection of data to the analysis of survey responses. It covers issues related to the sampling process, selection and attrition, attention and carelessness, survey question design and measurement, response biases, and survey experiments.",
-  }
-
-

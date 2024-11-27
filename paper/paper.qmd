@@ -11,9 +11,15 @@ format:
     bibliography: references.bib
     documentclass: article
     geometry: margin = 1in
+header-includes:
+  - \usepackage{float} 
+  - \floatplacement{table}{H}
 number-sections: true
-toc: true
+include-in-header: 
+  text:
+    \renewcommand{\abstractname}{Abstract}
 bibliography: references.bib
+toc: true
 ---
 
 ```{r}
@@ -224,6 +230,8 @@ ggplot(full_data, aes(x = `Catch Type`, y = total_catch, fill = Country)) +
 # Model
 Here we model the data in 2 ways. The first way is to model the rate at which the fishes are being caught for any country. And the second model looks at what is the probability that a country is fishing for commercial purposes. 
 
+We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`. We also use `brm` package from @brms
+
 ## Model Step- Up
 
 
@@ -386,7 +394,7 @@ ggplot(random_effects_df, aes(x = Country, y = predicted_prob)) +
 #| echo: false
 #| warning: false
 #| message: false
-#| label: fig_model1
+#| label: tbl-model1
 #| tbl-cap: "baysian model summary for predicting the rate of fishes being caught"
 
 modelsummary::modelsummary(
@@ -398,12 +406,14 @@ modelsummary::modelsummary(
 )
 ```
 
+
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
-#| label: fig_model2
+#| label: tbl-model2
 #| tbl-cap: "baysian model summary for predicting the probability of country fishing for commercial purposes."
+
 modelsummary::modelsummary(
   list(
     "Second model" = bayesian_model_commercial_brms

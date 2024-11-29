@@ -134,52 +134,63 @@ To download the data go to [NPFAC's official data portal](https://www.npafc.org/
 ## Methodology and Measurement
 NPAFC has this data to download from their website. The way they gathered this data was that they are an inter-government organisation so they have access to government data based on how much fish were hunted in the respective countries. The countries in the data include Canada, Russia, Korea, Japan and Unites States of America. The way each of these countries measured this data was that when fish are being caught on international waters and report it to each other. This is strictly enforced, especially after the fall of salmon and trout population in the Pacific, majorly due to environment purposes. 
 
-This paper look at multiple variables. First, variable we look at is Country which are either "Canada", "Russia", "Korea", "Japan", and "United States", all representing the countries that are members of this organization. This data was left unchanged, Next variables we look at is "Whole Country/Province/State", where the instances of these variables may either be Whole country, or the different states or provinces that was fishing and gathered that data. So for example, if the value was British Columbia then the corresponding number of fishes caught reported is the number of fish caught by the province. Throughout our data we filtered for the "Whole country" value, assuming that the numbers in each province and/or state would add up to the number in "Whole country" (which it did). This was because we were more interested in comparing the fishing trends between countries rather then within a country. The next variable is "Reporting Area" which accounts for where the fishes were caught. This was also filtered by "Whole country" due to the previous reasoning. The next variable that we filtered was "Species" which contained "Cherry", "Chinook", "Chum", "Coho", "Pink", "Sockeye", "Steelhead" and "Total". These are all types of salmon except for Steelhead which is a trout and "Total" which represents all the fishes that were hunted. Although there is a lot of interesting information to uncover if we did a deeper analysis on each fish, but, we decided that the best way to compare the fishing trends between countries would be to just look at the total fishes caught. The next variable we used and actually analyse is the "catch type". This tells us whether is the fishes were caught for commercial purposes (caught for profit purposes like selling), sporting purposes (which means they were caught recreationaly) or subsistence purposes (which means they were caught to provide food, not as a profit). The last variable we filtered was "Data Type" which was the unit that these numbers were reported in. There was Numbers in 1000s or Round weight in metric tonne. We chose to filter with numbers in 1000s as the other option was done only by the US, who provided both units.
+This paper look at multiple variables. We will go through them one by one: 
+- First, variable we look at is Country which are either "Canada", "Russia", "Korea", "Japan", and "United States", all representing the countries that are members of this organization. This data was left unchanged.
+- Next variables we look at is "Whole Country/Province/State", where the instances of these variables may either be Whole country, or the different states or provinces that was fishing and gathered that data. So for example, if the value was British Columbia then the corresponding number of fishes caught reported is the number of fish caught by the province. Throughout our data we filtered for the "Whole country" value, assuming that the numbers in each province and/or state would add up to the number in "Whole country" (which it did). This was because we were more interested in comparing the fishing trends between countries rather then within a country. 
+- The next variable is "Reporting Area" which accounts for where the fishes were caught. This was also filtered by "Whole country" due to the previous reasoning. The next variable that we filtered was "Species" which contained "Cherry", "Chinook", "Chum", "Coho", "Pink", "Sockeye", "Steelhead" and "Total". These are all types of salmon except for Steelhead which is a trout and "Total" which represents all the fishes that were hunted. Although there is a lot of interesting information to uncover if we did a deeper analysis on each fish, but, we decided that the best way to compare the fishing trends between countries would be to just look at the total fishes caught. 
+- The next variable we used and actually analyse is the "catch type". This tells us whether is the fishes were caught for commercial purposes (caught for profit purposes like selling), sporting purposes (which means they were caught recreationaly) or subsistence purposes (which means they were caught to provide food, not as a profit). 
+- The last variable we filtered was "Data Type" which was the unit that these numbers were reported in. There was Numbers in 1000s or Round weight in metric tonne. We chose to filter with numbers in 1000s as the other option was done only by the US, who provided both units.
 
-Thoese were the variables that we filtered or focused on but there is one more variable that is important for this paper; the number of fishes caught. That number in the raw data was provided as the year as a column and the corresponding value as the number of fishes caught. This format meant that when we are creating models or graphs it is very difficult to work with it. And so we actually shifted, rather pivotted the table so that analysis is easier. To pivot the table we created 2 new rows to the dataset, "Year" and "Catch". The year corresponds to the column's title which is the year this data is for and the "catch" refers to the number of fishes that were caught in that year, in that country. This helped significantly with making the models and such. 
+These were the variables that we filtered but the variable we actually analyse is the number of fishes caught. That number in the raw data was provided as the year as a column and the corresponding value as the number of fishes caught. This format meant that when we are creating models or graphs it is very difficult to work with it. And so we actually shifted, rather pivotted the table so that analysis is easier. To pivot the table we created 2 new rows to the dataset, "Year" and "Catch". The year corresponds to the column's title which is the year this data is for and the "catch" refers to the number of fishes that were caught in that year, in that country. This helped significantly with making the models and such. 
 
 ## Data Visualization {#sec-graphs}
 
-we make the assumption that the coloumns that say whole country it also include the provinces and different areas number as well. 
+we make the assumption that the columns that say whole country it also include the provinces and different areas number as well. 
 
-```{r}
+```{r, fig.height= 3.5, fig.width= 7.5}
 #| echo: false
 #| warning: false
 #| message: false
 #| label: fig-long_comb
+#| fig-cap: "Catch over Time by Country"
 
 ggplot(long_data_combined, aes(x = Year, y = Catch, color = Country)) +
   geom_line(size = 1, alpha = 0.7) +  # Line plot with some transparency
   geom_point(size = 2, alpha = 0.8) +  # Points with smaller size
-  labs(title = "Catch over Time by Country", x = "Year", y = "Catch") +
+  labs(x = "Year", y = "Catch") +
   scale_y_continuous(labels = scales::comma) +  # Format y-axis with commas
   theme_minimal() +
   theme(legend.title = element_blank())
 
 ```
+From @fig-long_comb we are able to see the number of fishes caught in each country as time goes by. They fluctuate a lot because over fishing in one year means that the next year there is not a lot of fish left as not as many survived to repopulate. However we see that there is a increase in the number of fishes caught for the US and Russia. Meanwhile, Japan and Canada are declining. This is interesting as Japan is surrounded by the Pacific Ocean more than all of these other countries and Canada coming in a close second. An educated guess as to why this may be the case is that, the US and Russia may be fishing more as they have a stronger fishing industry with the technology and money to fund longer trips in the ocean. 
 
-```{r}
+
+```{r, fig.height= 3.5, fig.width= 6.5}
 #| echo: false
 #| warning: false
 #| message: false
 #| label: fig-korea
+#| fig-cap: "Catch over Time by Country"
 
 ggplot(long_data_korea, aes(x = Year, y = Catch, color = Country)) +
   geom_line(size = 1, alpha = 0.7) +  # Line plot with some transparency
   geom_point(size = 2, alpha = 0.8) +  # Points with smaller size
-  labs(title = "Catch over Time by Country", x = "Year", y = "Catch") +
+  labs( x = "Year", y = "Catch") +
   scale_y_continuous(labels = scales::comma) +  # Format y-axis with commas
   theme_minimal() +
   theme(legend.title = element_blank())
 
 ```
 
+In @fig-long_comb we can barely see the fluctuation for Korea; it seems almost constant. Hense we graph it sepreatly here in @fig-korea. We see that like the other countries in our data, they also fluctuate in numbers. From this an guess may be that they are decreasing the number of fishes they catch but, our guess is quite the opposite. We think that in 2023 it was just low due to one of the fluctuations where they fished too much the previous year. We expect a rise in the next 2 or 3 years. 
 
-```{r}
+```{r, fig.height= 3.5, fig.width= 7.5}
 #| echo: false
 #| warning: false
 #| message: false
 #| label: fig-total_bar
+#| fig-cap: "Catch Data by Country and Catch Type (2022)"
 
 # Load necessary libraries
 library(dplyr)
@@ -213,7 +224,7 @@ ggplot(full_data, aes(x = `Catch Type`, y = total_catch, fill = Country)) +
             position = position_dodge(width = 0.9), 
             vjust = -0.1,  # Adjust vertical position of text
             size = 2) +  # Smaller font size for the numbers
-  labs(title = "Catch Data by Country and Catch Type (2022)", 
+  labs( 
        x = "Catch Type", 
        y = "Catch Data") +
   scale_y_continuous(labels = scales::comma) +
@@ -221,22 +232,37 @@ ggplot(full_data, aes(x = `Catch Type`, y = total_catch, fill = Country)) +
   theme(legend.title = element_blank())
 
 ```
+@fig-total_bar is a great way to analyse the different reasons why these fishes are caught. We narrowed the year to 2022 as we predict the fishing industry has recovered after covid and will show accurate results. Here we see that most fishes are caught due to commercial purposes where they sell the fish rather then for sporting or subsistence purposes. It also seems that Russia fishes the most out of the Norther Pacific region with its number being almost doubled from the second most country to fish, the US. Russia has fished around 309,142,000 fishes in the year 2022 next to US who has fished around 166,114,000. With these numbers, no wonder we see fluctuation in the number of fishes caught in @fig-long_comb.
 
 
 
-## Outcome and Predictor variables
 
-
+\newpage 
 # Model
 Here we model the data in 2 ways. The first way is to model the rate at which the fishes are being caught for any country. And the second model looks at what is the probability that a country is fishing for commercial purposes. 
 
 We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`. We also use `brm` package from @brms
 
-## Model Step- Up
+## Number of Fishes Caught (dependent on Year and Country)
+
+Define $Catch_{ij}$ to be the number of fishes caught. We are trying to see how will $Catch_{ij}$ change as we increase $Year$ which is our other variable. We are finding the correlation with the countries in mind which is why we account for the random effect of the country. 
 
 
+\begin{align} 
+\mbox{Catch}_{ij} &\sim \mbox{Normal}(\mu_{ij}, \sigma^2) \\
+\mu_{ij} &= \beta_0 + \beta_1 \times \mbox{Year}_{ij} + u_j \\
+u_j &\sim \mbox{Normal}(0, \sigma_{\mbox{Country}}^2) \\
+\beta_0 &\sim \mbox{Normal}(0, 2.5) \\
+\beta_1 &\sim \mbox{Normal}(0, 2.5) \\
+\end{align}
 
+### Model Justification
+- $Catch_{ij}$ is the number of fishes caught, the variable we are modeling
+- $Year$ is the independent variable that shows the year
+- $u_j$ is the random effect of the countries. This is important as the number of fishes caught differentiate between country so to get a weighted result we add this variable. 
+- $\beta_0$ and $\beta_1$ tells us the intercept and the slope respectively, of the Bayesian Generalised Linear Mixed Model. 
 
+We predict that even thought 2 (may be 3) out of the 5 countries in the data set have a positive trend in terms of the number of fish being caught (@fig-long_comb), because the rate at which Russia and USA is increasing is way higher than Japan, Korea and Canada. This can be seen visually. So I think that the rate of increase is going to be positive. 
 
 
 
@@ -271,11 +297,25 @@ bayesian_model <-
 
 
 
-Model 2
+## To be Commercial or Not to be Commercial
+Define $IsCommercial_{ij}$ to be the probability that the fishes caught were commercial (for buisness purposes). We are trying to see how will $IsCommercial_{ij}$ change as we change $Country$. We esstially use, again, a Baysian Generalised Linear Mixture Model to see how does the likelihood of fishes being caught for commercial purposes varies from country to country.  
 
+\begin{align} 
+\mbox{IsCommercial}_{ij} &\sim \mbox{Bernoulli}(p_{ij}) \\
+\mbox{logit}(p_{ij}) &= \beta_0 + u_j \\ 
+\mbox{u}_j &\sim \mbox{Normal}(0, \sigma_{\mbox{Country}}^2) \\
+\beta_0 &\sim \mbox{Normal}(0, 2.5) \\ 
+\sigma_{\mbox{Country}} &\sim \mbox{Normal}(0, 2.5)
+\end{align}
 
+### Model Justification
+- $IsCommercial_{ij}$ is the probability that the fishes caught were commercial. This is what we are modelling using Bernoulli Distribution. 
+- $Country$ is the independent variable that shows the countries. 
+- $u_j$ is the random effect of the countries. This is important as the number of fishes caught commercially is different between countries. 
+- $\beta_0$  tells us the intercept so, what is the likelihood of it being commercial for a "baseline" country. This is essentially the average of all the intercepts for all the countries.  
+Note that this model doesn't look at the number of fishes caught rather the number of occurrences in the year 2022 where fishes were caught commercially. We focus on the year 2022 because it is recent data and modeling with all years between 1925 to 2023 would have not given us a result that was relevant to us. We would also loose information as the liklihood may have not been as high in the 1900s due to the lack of equipment. 
 
-
+We predict that the outcome or rather the probability that the fishes caught were commercially would be positive. This is because as we were looking at the graphs in the data section, we notice that @fig-total_bar shows most of the fishes caught were commercially and then as a sport and then as a subsistence. 
 
 ```{r}
 #| echo: false
@@ -313,15 +353,53 @@ ranef_bayesian_model_commercial_brms <- ranef(bayesian_model_commercial_brms)
 ```
 
 
-
+### Model justification
 
 the base line probability of having a country that is fishing for commercial purpose is log of 0.838 which is 69.8%. which means that there is 69.8% probability that the country is fishing for commercial purposes, without even knowing the country. 
 
+
+
+
+
+# Results
+
+## Model Results
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: tbl-modelSum
+#| layout-ncol: 2
+#| tbl-cap: "Model Summaries"
+#| tbl-subcap: ["baysian model summary for predicting the probability of country fishing for commercial purposes.", "baysian model summary for predicting the rate of fishes being caught"]
+
+modelsummary::modelsummary(
+  list(
+    "Second model" = bayesian_model_commercial_brms
+  ),
+  statistic = "mad",
+  fmt = 2
+)
+
+modelsummary::modelsummary(
+  list(
+    "First model" = bayesian_model
+  ),
+  statistic = "mad",
+  fmt = 2
+)
+```
+
+## Other statistics
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
+#| results: hide
+#| label: fig-randomInter
+#| fig-cap: "Distribution of Random Intercepts for Country"
 # Extract random effects for Country
 random_effects_df <- as.data.frame(ranef_bayesian_model_commercial_brms$Country)
 
@@ -332,8 +410,8 @@ names(random_effects_df)
 library(ggplot2)
 
 ggplot(random_effects_df, aes(x = Estimate.Intercept)) + 
-  geom_histogram(binwidth = 0.1, fill = "skyblue", color = "black", alpha = 0.7) +
-  labs(title = "Distribution of Random Intercepts for Country",
+  geom_histogram(binwidth = 0.1, fill = "grey", color = "black", alpha = 0.7) +
+  labs(
        x = "Random Intercept (Country)",
        y = "Frequency") +
   theme_minimal()
@@ -347,6 +425,9 @@ ggplot(random_effects_df, aes(x = Estimate.Intercept)) +
 #| echo: false
 #| warning: false
 #| message: false
+#| results: hide
+#| label: fig-predProb
+#| fig-cap: "Predicted Probability of Commercial Catch by Country"
 # Extract random effects for Country
 random_effects_df <- as.data.frame(ranef(bayesian_model_commercial_brms)$Country)
 
@@ -369,58 +450,13 @@ random_effects_df$predicted_prob <- 1 / (1 + exp(-random_effects_df$log_odds))
 library(ggplot2)
 
 ggplot(random_effects_df, aes(x = Country, y = predicted_prob)) + 
-  geom_bar(stat = "identity", fill = "lightblue", color = "black") +
-  labs(title = "Predicted Probability of Commercial Catch by Country",
+  geom_bar(stat = "identity", fill = "grey", color = "black") +
+  labs(
        x = "Country",
        y = "Predicted Probability") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +  # Rotate country names for readability
   theme_minimal()
 
-```
-
-
-
-
-### Model justification
-
-
-
-# Results
-
-
-## Model Results
-
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: tbl-model1
-#| tbl-cap: "baysian model summary for predicting the rate of fishes being caught"
-
-modelsummary::modelsummary(
-  list(
-    "First model" = bayesian_model
-  ),
-  statistic = "mad",
-  fmt = 2
-)
-```
-
-
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: tbl-model2
-#| tbl-cap: "baysian model summary for predicting the probability of country fishing for commercial purposes."
-
-modelsummary::modelsummary(
-  list(
-    "Second model" = bayesian_model_commercial_brms
-  ),
-  statistic = "mad",
-  fmt = 2
-)
 ```
 
 

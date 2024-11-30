@@ -1,6 +1,6 @@
 ---
 title: "Analysing the Fish Hunting Numbers in North Pacific Ocean"
-subtitle: "Using Baysian Modeling, to find that number of fish caught has increased"
+subtitle: "Using Bayesian Modeling, to find that number of fish caught has increased"
 author: "Shreya Sakura Noskor"
 thanks: "Code and data are available at: [https://github.com/NotSakura/FisheriesData.git](https://github.com/NotSakura/FisheriesData.git)."
 date: today
@@ -243,7 +243,7 @@ Here we model the data in 2 ways. The first way is to model the rate at which th
 
 We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`. We also use `brm` package from @brms
 
-## Number of Fishes Caught (dependent on Year and Country)
+## Number of Fishes Caught (dependent on Year and Country) {#sec-mod1}
 
 Define $Catch_{ij}$ to be the number of fishes caught. We are trying to see how will $Catch_{ij}$ change as we increase $Year$ which is our other variable. We are finding the correlation with the countries in mind which is why we account for the random effect of the country. 
 
@@ -297,8 +297,9 @@ bayesian_model <-
 
 
 
-## To be Commercial or Not to be Commercial
-Define $IsCommercial_{ij}$ to be the probability that the fishes caught were commercial (for buisness purposes). We are trying to see how will $IsCommercial_{ij}$ change as we change $Country$. We esstially use, again, a Baysian Generalised Linear Mixture Model to see how does the likelihood of fishes being caught for commercial purposes varies from country to country.  
+
+## To be Commercial or Not to be Commercial {#sec-mod2}
+Define $IsCommercial_{ij}$ to be the probability that the fishes caught were commercial (for buisness purposes). We are trying to see how will $IsCommercial_{ij}$ change as we change $Country$. We esstially use, again, a Bayesian Generalised Linear Mixture Model to see how does the likelihood of fishes being caught for commercial purposes varies from country to country.  
 
 \begin{align} 
 \mbox{IsCommercial}_{ij} &\sim \mbox{Bernoulli}(p_{ij}) \\
@@ -353,13 +354,6 @@ ranef_bayesian_model_commercial_brms <- ranef(bayesian_model_commercial_brms)
 ```
 
 
-### Model justification
-
-the base line probability of having a country that is fishing for commercial purpose is log of 0.838 which is 69.8%. which means that there is 69.8% probability that the country is fishing for commercial purposes, without even knowing the country. 
-
-
-
-
 
 # Results
 
@@ -372,7 +366,7 @@ the base line probability of having a country that is fishing for commercial pur
 #| label: tbl-modelSum
 #| layout-ncol: 2
 #| tbl-cap: "Model Summaries"
-#| tbl-subcap: ["baysian model summary for predicting the probability of country fishing for commercial purposes.", "baysian model summary for predicting the rate of fishes being caught"]
+#| tbl-subcap: ["bayesian model summary for predicting the probability of country fishing for commercial purposes.", "bayesian model summary for predicting the rate of fishes being caught"]
 
 modelsummary::modelsummary(
   list(
@@ -391,6 +385,9 @@ modelsummary::modelsummary(
 )
 ```
 
+In @tbl-modelSum-1 we see the model summary for Model 1 which was finding the probability of a country fishing for commercial purposes. And in @tbl-modelSum-2 we see the results for model 2 where we look at the rate at which fish are being hunted for the "baseline" country. There are a lot of numbers here that we don't need to look at to see if our predictions were right. We only need to know the intercepts and the slopes or as shown in the model $\beta_0$ and $\beta_1$. In @tbl-modelSum-1 we see that the log likelihood of a "baseline" country fishing for commercial purpose is 0.84 which is 69.8%. This means that there is 69.8% probability that the country is fishing for commercial purposes, without even knowing the country. The "sd country Intercept" just tells you how much variation there is in that result. Next in @tbl-modelSum-2 we see that the intercept is -1,367,335 which tells you that at Year 0 somehow a baseline country fished negative -1,367,335 fish. We will discuss more about this number and interpret it in the next section (@sec-disc). The "Year = 721.74" tells you that with every increase in year there is about 721,000 more fish that are being caught. And finally similar to the other model summary "sd country $\times$ Intercept Intercept" tells you how much variation there is in the results. We don't need these variation values unless we are analysing the model (and not the data).  
+
+
 ## Other statistics
 
 ```{r}
@@ -398,8 +395,8 @@ modelsummary::modelsummary(
 #| warning: false
 #| message: false
 #| results: hide
-#| label: fig-randomInter
-#| fig-cap: "Distribution of Random Intercepts for Country"
+##| label: fig-randomInter
+##| fig-cap: "Distribution of Random Intercepts for Country"
 # Extract random effects for Country
 random_effects_df <- as.data.frame(ranef_bayesian_model_commercial_brms$Country)
 
@@ -407,14 +404,14 @@ random_effects_df <- as.data.frame(ranef_bayesian_model_commercial_brms$Country)
 names(random_effects_df)
 
 # Now, plot the distribution of the random intercepts for Country
-library(ggplot2)
+#library(ggplot2)
 
-ggplot(random_effects_df, aes(x = Estimate.Intercept)) + 
-  geom_histogram(binwidth = 0.1, fill = "grey", color = "black", alpha = 0.7) +
-  labs(
-       x = "Random Intercept (Country)",
-       y = "Frequency") +
-  theme_minimal()
+#ggplot(random_effects_df, aes(x = Estimate.Intercept)) + 
+#  geom_histogram(binwidth = 0.1, fill = "grey", color = "black", alpha = 0.7) +
+#  labs(
+#       x = "Random Intercept (Country)",
+#       y = "Frequency") +
+#  theme_minimal()
 
 
 ```
@@ -451,17 +448,24 @@ library(ggplot2)
 
 ggplot(random_effects_df, aes(x = Country, y = predicted_prob)) + 
   geom_bar(stat = "identity", fill = "grey", color = "black") +
+  geom_text(aes(label = round(predicted_prob, 2)), vjust = -0.5) +  # Add text labels rounded to 2 decimals
   labs(
        x = "Country",
        y = "Predicted Probability") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +  # Rotate country names for readability
   theme_minimal()
 
+
 ```
 
+We also calculate the predicted probability of a country fishing commercially for all 5 countries in the NPFAC. In @fig-predProb we see that Canada, US and Russia has a 40% probability that they fish commercially, Japan and Korea both have 97% probability. We will see why that is the case in the next section (@sec-disc).
 
+\newpage
 
-# Discussion
+# Discussion {#sec-disc}
+
+## Story of the Data
+
 
 ## Weaknesses and next steps
 Korea didn't report data until 1969 so they are left out of the first model in general. 
@@ -470,23 +474,172 @@ Korea didn't report data until 1969 so they are left out of the first model in g
 
 \appendix
 
-# Appendix 1
+# Fisheries and Surveys/Observational Data {#sec-A}
+
+The data that we gathered for this paper is definitely observational data. This is because the in the NPFAC's official website they state that they gather the data by contacting each member of government and asking them to submit this data. In our own Canadian government, we see that we have Fish Monitoring Policy where people are expected to report their catch data if they caught a lot [@govFish]. For example, if some one has fished a rare specie of fish or a large number of fishes were caught they must report it to the government. This is how the government gains the data and passes it on to NPFAC. 
 
 
-# Appendix 2 (datasheet)
 
-1. For what purpose was the dataset created?
-The dataset was originally created by North Pacific Anadormous Fish Commission [@npafc_statistics] created this dataset to see how much fishing of trout and salmon was done in international waters. They strictly prohibits mass fishing of these highly demanded fishes and hense the dataset. We use the dataset to analyse the number of these fishes caught and see if there is a reason for NPAFC to be worried, and if there is a solution to this. 
+The common concern with datasets of our type is often 2 paradoxes know as Simpson's Paradox and Berkson's Paradox. We assume that Simpson's paradox does come into play for our model in @sec-mod1. Simpson's Paradox is when we have relationship between subsets of data show a result but when we model the entire result together, the result differs. This can be seen in our first model because we see that in @fig-long_comb that different countries have a different rate of change for the number of catches with respect to year. We see that Japan and Canada has a decreasing rate. However the over all model outputs a positive rate of change. This shows that the subset of the data has a different result then when we combine the entire data. So this paradox does apply to us. Next we also say that the Berkson's Paradox also affects us as in our data set we only take a look at the data for Salmon and Trout Population. However, what the dataset doesn't account is the other fish species that are also fished. Yes it is true that over fishing is an issue but the result that our model shows may not be the most accurate number due to the fact that this key information is left out. The @popFish shows that salmon, tuna and trout are one of the most fished anadromous. And @npafc_species shows the other anadromous fishes that are in the North Pacific Ocean. 
 
-2.What do the instances that comprise the dataset represent (for example, documents, photos, people, countries)?
-The instances of these data is either numeric or catagorical. Thee first couple of columns tells you the country the data is from, where the fishes were hunted as well as getting to specific regions. Why they were hunted and what the unit were, was also in the data set. The majority of the dataset is numbers expressing how much fish was hunted, either in thousands or tonnes. 
 
-3.Is any information missing from individual instances?
+We observed that one of the reasons why these paradox applies to us is because our data doesn't sample the entire data. The way they gather their data is similar to an Integrated method (mentioned in Stantcheva's supplemental appendix in @sampling). Although they are not an open community where anyone who is a member of the community may be rewarded for their participation in giving their data, all of the countries is under an organisation and they give their data as they all actively participate in the organisations goal for sustainable fishing. The issue we were talking about earlier- the one that causes these paradoxes to affect our data - is the fact that the way this organisation collects data also presents a sampling bias. A sampling bias is when the data collected is not a representitive of the entire population. This can be caused when data is collected only from one place and we ignore all other factors. This is what happens here. Because NPFAC only consists of the 5 countries in the data (Japan, Korea, Russia, US, Canada), our data has gaps for the number of fishes caught by other countries that fish in the North Pacific Ocean such as other East Asian countries like China, Phillipines and Taiwan. Realistically China has a large fishing industry as well so our analysis would look very different when we include their data. Another thing we are missing is the fact that there are other Anadromous fishes in the Pacific that could also skew the data and causes the Berkson's Paradox. 
+
+We will now move on from critiquing the data to our analysis. Our modeling is a prime example of convenience sampling. This is when we filter data to our own rules and analyse those results because it is the most convenient for us. In this paper it was done for @fig-long_comb. This was due to the fact that not a lot of the data dated back to the 1925 so, initially Korea was left out from our data. However, because we wanted a chance to compare all 5 countries of the organisation, we combined data from Korea which started 1969. We purposefully chose filters that will shorten our data while getting getting the attributes we want to study. The effect of this is that our model where we check the rate of change of fishes caught [@sec-mod1], is inaccurate as we don't have the data from 1925 to 1969 for Korea and we filtered the data so much to fit Korea that we loose information like the type of fish and why they were fished (commercial, sporty, subsistence). 
+
+
+Now we will move to the survey analysis. Because this data was not gathered through a survey we will simply talk about how we would gather this data. It would not be very complicated. Our hope is that 6-months before we send the survey we ask the fisher to keep track of their weekly fish caught. That they would record the number of fish caught of each type, the area they were in and when they caught them (time of day would be appreciated but the date is minimum). Then 6 months after the notice I send out a survey that asks for their information. It would be nothing private like the area they live in and how long they spent fishing. I would send out this email to corporations for their data as well as regular fisherman that fish for subsistence. This would be to make sure there is not sampling bias when collecting the data. This was an issue in our original data as we noticed there were a lot more commercial fishes caught and we did not know if this was due to not a lot of fish caught for subsistence or they were not reached out to for their data. This would make sure that we have as minimal gaps in our data as possible. 
+
+
+# Data Sheet
+
+*1. For what purpose was the dataset created?*
+The data set was originally created by North Pacific Anadromous Fish Commission [@npafc_statistics] created this dataset to see how much fishing of trout and salmon was done in international waters. They strictly prohibits mass fishing of these highly demanded fishes and hence the dataset. We use the dataset to analyse the number of these fishes caught and see if there is a reason for NPAFC to be worried, and if there is a solution to this. 
+
+*2. What do the instances that comprise the data set represent (for example, documents, photos, people, countries)?*
+The instances of these data is either numeric or categorical. Thee first couple of columns tells you the country the data is from, where the fishes were hunted as well as getting to specific regions. Why they were hunted and what the unit were, was also in the data set. The majority of the dataset is numbers expressing how much fish was hunted, either in thousands or tonnes. 
+
+*3. Is any information missing from individual instances?*
 There are several instances of data missing. Most are from the number of fishes column as some of the data goes back to 1925 but, not all of them so, there are some rows of data where the total number of fishes collected in 1928, for example, is not present. 
 
-4. How was the data associated with each instance acquired? Was the data directly observable (for example, raw text, movie ratings), reported by subjects (for example, survey responses), or indirectly inferred/ derived from other data (for example, part-of-speech tags, model-based guesses for age or language)?
+*4. How was the data associated with each instance acquired? Was the data directly observable (for example, raw text, movie ratings), reported by subjects (for example, survey responses), or indirectly inferred/ derived from other data (for example, part-of-speech tags, model-based guesses for age or language)?*
 
 This dataset was reported by the subjects of each country. Meaning this organisation asked the government of Canada, US, Korea, Russia and Japan, send in the numbers and they compiled this data. 
 
 
+\newpage
+
+# Model Card - North Pacific Anadromous Fish Data
+**Model Details**
+- Model was created by Student at University of Toronto on November 27th 2024. 
+- Bayesian Generalized Linear Model (GLMM)
+- Ver 4 as the other versions tried to take all variables like region and country into consideration but the model was too complex to implement and even more to analyse. 
+
+
+**Intended Use**
+- Analyse the number of Anadromous fish caught in the North Pacific Ocean by looking at if they are commercially caught and the rate at which they were caught. 
+- Intended to see if sustainability measures put on fish hunting has worked
+- Not intended to see what measures can be put into change the outcome of the results seen here (such as laws to prevent the rate being so high)
+
+
+**Factors**
+- Relevant factors are year, number of fishes caught and if the fishes were caught for commercial purpose or not (true or false value). Year is a predetermined value and the countries that reported the data to NPFAC was in charge of identifying the number of fishes they caught and why they caught it. Details available in data section of the paper. 
+- Evaluation factors or the values that are being reported are rate of number of fish caught [@fig-modelcard-2] and probability that the fish caught was commercial [@fig-modelcard-3]. These are being evaluated to understand if certain sustainability measures are helping the fish being over hunted.  
+
+
+**Metrics**
+- Measured in Thousands of Fish as given in @npafc_statistics.
+
+
+**Training Data**
+- Data from @npafc_statistics was used to make/train this model. 
+
+
+**Evaluation Data**
+- We applied the model on the same data as the training set [@fig-modelcard-2] and we see that it is linear due to the fact that we applied the model on it self with the same rate. 
+
+
+**Ethical Considerations**
+- We are only using the observational data. Hence we are not actually changing the data themselves. The model does not take into account any personal data as the only data provided was the year, the number of fish caught and where they were caught. 
+
+
+**Caveats and Recommendation**
+- Use a data that has no sampling bias. This is because of the reasons discussed in @sec-A. To summaries it, it is because of the Simpson's and Berkson's Paradox that seems to arise. 
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: fig-modelcard
+#| layout-ncol: 3
+#| fig-cap: "Quantitative Analysis"
+#| fig-subcap: ["Bar plot with error bars for predictions and credible intervals by Country", "Plot predictions over time (by Year) for each Country", "Predicted Probability of Commercial Catch by Country"]
+#| results: hide
+
+# Load necessary libraries
+library(rstanarm)
+library(ggplot2)
+
+# Assuming the model is already fitted with stan_glmer like this:
+# model_formula <- Catch ~ Year + (1 | Country)
+# bayesian_model <- stan_glmer(formula = model_formula, data = long_data_combined, family = gaussian(), 
+#                              prior = normal(0, 2.5, autoscale = TRUE), 
+#                              prior_intercept = normal(0, 2.5, autoscale = TRUE), 
+#                              seed = 123, adapt_delta = 0.95, cores = 4)
+
+# Extract posterior predictions from the fitted model
+posterior_preds <- posterior_predict(bayesian_model)
+
+# Summarize the predictions (mean and credible intervals)
+mean_preds <- apply(posterior_preds, 2, mean)  # Mean of posterior predictions for each data point
+lower_ci <- apply(posterior_preds, 2, function(x) quantile(x, probs = 0.025))  # 95% lower credible interval
+upper_ci <- apply(posterior_preds, 2, function(x) quantile(x, probs = 0.975))  # 95% upper credible interval
+
+# Check the number of rows in the original data and posterior predictions
+print(nrow(long_data_combined))  # Should be 495 (or the correct number of rows)
+print(length(mean_preds))  # Should match the number of rows in long_data_combined
+
+# Handle potential mismatch in number of rows (e.g., due to missing values)
+# If there are any missing values, we can subset the data or remove rows with NAs
+long_data_combined_clean <- long_data_combined[complete.cases(long_data_combined$Catch), ]
+
+# Ensure the posterior predictions align with the cleaned data
+# If long_data_combined_clean has a different number of rows than the posterior predictions,
+# subset the predictions accordingly.
+if (nrow(long_data_combined_clean) != length(mean_preds)) {
+  stop("The number of posterior predictions does not match the cleaned data.")
+}
+
+# Add the predictions and credible intervals to the cleaned data
+long_data_combined_clean$mean_pred <- mean_preds[1:nrow(long_data_combined_clean)]
+long_data_combined_clean$lower_ci <- lower_ci[1:nrow(long_data_combined_clean)]
+long_data_combined_clean$upper_ci <- upper_ci[1:nrow(long_data_combined_clean)]
+
+# Visualizing the predictions using ggplot2
+# Bar plot with error bars for predictions and credible intervals by Country
+ggplot(long_data_combined_clean, aes(x = Country, y = mean_pred, fill = Country)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) +
+  labs(title = "Model Predictions by Country with 95% Credible Intervals", 
+       x = "Country", 
+       y = "Mean Prediction") +
+  theme_minimal()
+
+# If you want to plot predictions over time (by Year) for each Country
+ggplot(long_data_combined_clean, aes(x = Year, y = mean_pred, color = Country)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~ Country, scales = "free_y") +  # Facet by Country
+  labs(title = "Predictions of Catch by Year and Country", x = "Year", y = "Mean Prediction") +
+  theme_minimal()
+
+# Optionally, compute and visualize R-squared or other performance metrics
+# Compute R-squared
+observed_values <- long_data_combined_clean$Catch
+mse <- mean((observed_values - long_data_combined_clean$mean_pred)^2)  # Mean squared error
+r_squared <- 1 - sum((observed_values - long_data_combined_clean$mean_pred)^2) / sum((observed_values - mean(observed_values))^2)
+
+# Print MSE and R-squared
+print(paste("MSE:", mse))
+print(paste("R-squared:", r_squared))
+
+# Optionally, you can add these metrics to the data for further visualization if needed
+long_data_combined_clean$mse <- mse
+long_data_combined_clean$r_squared <- r_squared
+
+ggplot(random_effects_df, aes(x = Country, y = predicted_prob)) + 
+  geom_bar(stat = "identity", fill = "grey", color = "black") +
+  labs(
+       x = "Country",
+       y = "Predicted Probability") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +  # Rotate country names for readability
+  theme_minimal()
+```
+
+
+
+
+
+\newpage
 # References

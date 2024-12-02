@@ -45,7 +45,7 @@ library(openxlsx)
 #| echo: false
 #| warning: false
 #| message: false
-data <- read.xlsx('../data/01-raw_data/NPAFC_Catch_Stat-1925-2023.xlsx', sheet = 1) 
+data <- read.xlsx("../data/01-raw_data/NPAFC_Catch_Stat-1925-2023.xlsx", sheet = 1)
 colnames(data) <- data[1, ]
 data <- data[-1, ]
 ```
@@ -56,11 +56,11 @@ data <- data[-1, ]
 #| warning: false
 #| message: false
 cleaned_pac2 <- data %>%
-  filter(`Data Type` == "Number (000's)", `Whole Country/Province/State` == "Whole country", Species == "Total")  %>%
+  filter(`Data Type` == "Number (000's)", `Whole Country/Province/State` == "Whole country", Species == "Total") %>%
   select(Country, Species, `Catch Type`, `2022`) %>%
   filter(!is.na(`2022`) & `2022` != 0)
 
-cleaned_pac2 <-cleaned_pac2 %>%
+cleaned_pac2 <- cleaned_pac2 %>%
   select(-Species)
 
 
@@ -73,10 +73,9 @@ cleaned_pac <- data %>%
 
 koreadata <- data %>%
   filter(Species == "Total", `Data Type` == "Number (000's)", `Reporting Area` == "Whole country", Country == "Korea") %>%
-  filter(!is.na(Country)) 
+  filter(!is.na(Country))
 
 combined_data <- bind_rows(cleaned_pac, koreadata)
-
 ```
 
 
@@ -91,22 +90,24 @@ combined_data <- combined_data %>%
 koreadata <- koreadata %>%
   mutate(across(`1925`:`2023`, as.numeric))
 
-combined_data <- combined_data  %>%
+combined_data <- combined_data %>%
   select(-`Whole Country/Province/State`, -`Data Type`, -`Reporting Area`, -Species, -`Catch Type`)
-koreadata <- koreadata  %>%
+koreadata <- koreadata %>%
   select(-`Whole Country/Province/State`, -`Data Type`, -`Reporting Area`, -Species, -`Catch Type`)
 
 long_data_combined <- combined_data %>%
   pivot_longer(
-    cols = starts_with("19") | starts_with("20"),  # Select columns starting with "19" or "20"
+    cols = starts_with("19") | starts_with("20"), # Select columns starting with "19" or "20"
     names_to = "Year",
     values_to = "Catch"
   ) %>%
   mutate(Year = as.numeric(Year))
 
+write_csv(long_data_combined, "../data/02-analysis_data/clean_long_data_combined.csv")
+
 long_data_korea <- koreadata %>%
   pivot_longer(
-    cols = starts_with("19") | starts_with("20"),  # Select columns starting with "19" or "20"
+    cols = starts_with("19") | starts_with("20"), # Select columns starting with "19" or "20"
     names_to = "Year",
     values_to = "Catch"
   ) %>%
@@ -116,7 +117,15 @@ long_data_korea <- koreadata %>%
 
 # Introduction
 
-Estimand is the number of fishes that were caught by each country, for every year. Or more specifically what the rate was and if they are more likely to be fished for commercial purposes. 
+Overfishing and its ecological consequences represent critical challenges for sustainable resource management. In marine ecosystems, excessive fishing reduces fish stocks and destabilizing food chains. These effects are especially present in anadromous fish populations in the North Pacific Ocean, which plays an important role in both local ecosystems and global seafood markets. Despite the international regulations and monitoring efforts, disparities in fishing practices and compliance with catch limits persist. Understanding the interactions between fishing rates, international contributions, and sustainability is this papers main goal.
+
+This paper investigates fishing dynamics among the five key members of the North Pacific Anadromous Fish Commission (NPFAC): the United States, Japan, Korea, Canada, and Russia. Our primary focus is on two aspects: (1) fluctuations in annual fish catch rates from 1925 to 2024, and (2) the probability of countries engaging in commercial fishing. We use Bayesian Generalized Linear Mixture Models, to figure out the rate of annual fish catch per year, where we find that every year the number fish caught increases by 721,000 fish. These models reveals that US and Russia has a high rate of change than Japan, Korea, Canada but collectively they are a positive rate of change. Our estimand is the number of fishes that were caught by each country, for every year. Or more specifically what the rate was and if they are more likely to be fished for commercial purposes.
+
+We are trying to bridge the gap between the data that contains the number of fish caught and the sustainability concerns about said numbers. This research has been done already, most likely, however, we would like to introduce statistics and methods of observational data to aid inn this research. Although NPFAC aims to limit fishing activity, the catch data often suggest otherwise, especially when countries seem to fish more than they were advised to. For instance, the U.S. appears to exceed its allowable catch as seen in the discussion section later. Furthermore, while Russia emerges as a dominant provider of anadromous fish in our data, global perspectives point to China as the leading fishing nation [@ritchie2023fish], which is a country that is not in our data.
+
+Through our analysis, we identify critical patterns: fluctuations in fish stocks align with overfishing impacts, and fishing for commercial purposes dominates in all observed countries. The findings have significant implications for ecological preservation and the global seafood supply chain, as they underscore the importance of stricter compliance and adaptive management in maintaining fish populations. The paper is structured as follows: the data and methodologies are introduced in Section 2; results, including model summaries and predictions, are presented in Section 3; a discussion of sustainability and dominant fishing practices follows in Section 4; finally, conclusions and policy recommendations are outlined in Section 5. There are 3 appendicies: one for methods in survey, sampling and observational data, one for datasheet to explain the data, and the last as a model card exaplining that models.
+
+ 
 
 # Data {#sec-data}
 
@@ -135,10 +144,15 @@ To download the data go to [NPFAC's official data portal](https://www.npafc.org/
 NPAFC has this data to download from their website. The way they gathered this data was that they are an inter-government organisation so they have access to government data based on how much fish were hunted in the respective countries. The countries in the data include Canada, Russia, Korea, Japan and Unites States of America. The way each of these countries measured this data was that when fish are being caught on international waters and report it to each other. This is strictly enforced, especially after the fall of salmon and trout population in the Pacific, majorly due to environment purposes. 
 
 This paper look at multiple variables. We will go through them one by one: 
+
 - First, variable we look at is Country which are either "Canada", "Russia", "Korea", "Japan", and "United States", all representing the countries that are members of this organization. This data was left unchanged.
+
 - Next variables we look at is "Whole Country/Province/State", where the instances of these variables may either be Whole country, or the different states or provinces that was fishing and gathered that data. So for example, if the value was British Columbia then the corresponding number of fishes caught reported is the number of fish caught by the province. Throughout our data we filtered for the "Whole country" value, assuming that the numbers in each province and/or state would add up to the number in "Whole country" (which it did). This was because we were more interested in comparing the fishing trends between countries rather then within a country. 
+
 - The next variable is "Reporting Area" which accounts for where the fishes were caught. This was also filtered by "Whole country" due to the previous reasoning. The next variable that we filtered was "Species" which contained "Cherry", "Chinook", "Chum", "Coho", "Pink", "Sockeye", "Steelhead" and "Total". These are all types of salmon except for Steelhead which is a trout and "Total" which represents all the fishes that were hunted. Although there is a lot of interesting information to uncover if we did a deeper analysis on each fish, but, we decided that the best way to compare the fishing trends between countries would be to just look at the total fishes caught. 
+
 - The next variable we used and actually analyse is the "catch type". This tells us whether is the fishes were caught for commercial purposes (caught for profit purposes like selling), sporting purposes (which means they were caught recreationaly) or subsistence purposes (which means they were caught to provide food, not as a profit). 
+
 - The last variable we filtered was "Data Type" which was the unit that these numbers were reported in. There was Numbers in 1000s or Round weight in metric tonne. We chose to filter with numbers in 1000s as the other option was done only by the US, who provided both units.
 
 These were the variables that we filtered but the variable we actually analyse is the number of fishes caught. That number in the raw data was provided as the year as a column and the corresponding value as the number of fishes caught. This format meant that when we are creating models or graphs it is very difficult to work with it. And so we actually shifted, rather pivotted the table so that analysis is easier. To pivot the table we created 2 new rows to the dataset, "Year" and "Catch". The year corresponds to the column's title which is the year this data is for and the "catch" refers to the number of fishes that were caught in that year, in that country. This helped significantly with making the models and such. 
@@ -155,13 +169,12 @@ we make the assumption that the columns that say whole country it also include t
 #| fig-cap: "Catch over Time by Country"
 
 ggplot(long_data_combined, aes(x = Year, y = Catch, color = Country)) +
-  geom_line(size = 1, alpha = 0.7) +  # Line plot with some transparency
-  geom_point(size = 2, alpha = 0.8) +  # Points with smaller size
-  labs(x = "Year", y = "Catch") +
-  scale_y_continuous(labels = scales::comma) +  # Format y-axis with commas
+  geom_line(size = 1, alpha = 0.7) + # Line plot with some transparency
+  geom_point(size = 2, alpha = 0.8) + # Points with smaller size
+  labs(x = "Year", y = "Catch (Thousands of Fish)") +
+  scale_y_continuous(labels = scales::comma) + # Format y-axis with commas
   theme_minimal() +
   theme(legend.title = element_blank())
-
 ```
 From @fig-long_comb we are able to see the number of fishes caught in each country as time goes by. They fluctuate a lot because over fishing in one year means that the next year there is not a lot of fish left as not as many survived to repopulate. However we see that there is a increase in the number of fishes caught for the US and Russia. Meanwhile, Japan and Canada are declining. This is interesting as Japan is surrounded by the Pacific Ocean more than all of these other countries and Canada coming in a close second. An educated guess as to why this may be the case is that, the US and Russia may be fishing more as they have a stronger fishing industry with the technology and money to fund longer trips in the ocean. 
 
@@ -174,13 +187,12 @@ From @fig-long_comb we are able to see the number of fishes caught in each count
 #| fig-cap: "Catch over Time by Country"
 
 ggplot(long_data_korea, aes(x = Year, y = Catch, color = Country)) +
-  geom_line(size = 1, alpha = 0.7) +  # Line plot with some transparency
-  geom_point(size = 2, alpha = 0.8) +  # Points with smaller size
-  labs( x = "Year", y = "Catch") +
-  scale_y_continuous(labels = scales::comma) +  # Format y-axis with commas
+  geom_line(size = 1, alpha = 0.7) + # Line plot with some transparency
+  geom_point(size = 2, alpha = 0.8) + # Points with smaller size
+  labs(x = "Year", y = "Catch (Thousands of Fish)") +
+  scale_y_continuous(labels = scales::comma) + # Format y-axis with commas
   theme_minimal() +
   theme(legend.title = element_blank())
-
 ```
 
 In @fig-long_comb we can barely see the fluctuation for Korea; it seems almost constant. Hense we graph it sepreatly here in @fig-korea. We see that like the other countries in our data, they also fluctuate in numbers. From this an guess may be that they are decreasing the number of fishes they catch but, our guess is quite the opposite. We think that in 2023 it was just low due to one of the fluctuations where they fished too much the previous year. We expect a rise in the next 2 or 3 years. 
@@ -214,25 +226,26 @@ aggregated_data <- cleaned_pac2 %>%
 # Replace "United States" with "US" in the Country variable
 full_data <- complete_data %>%
   left_join(aggregated_data, by = c("Catch Type", "Country")) %>%
-  mutate(total_catch = ifelse(is.na(total_catch), 0, total_catch)) %>%  # Replace NA with 0 for missing catch data
-  mutate(Country = ifelse(Country == "United States", "US", Country))  # Abbreviate United States to US
+  mutate(total_catch = ifelse(is.na(total_catch), 0, total_catch)) %>% # Replace NA with 0 for missing catch data
+  mutate(Country = ifelse(Country == "United States", "US", Country)) # Abbreviate United States to US
 
 # Create the plot with the aggregated data and numbers on the bars
 ggplot(full_data, aes(x = `Catch Type`, y = total_catch, fill = Country)) +
-  geom_bar(stat = "identity", position = "dodge") +  # Bar plot with grouped bars by country
-  geom_text(aes(label = paste(Country, ":\n", round(total_catch, 0))),  # Newline between Country and catch number
-            position = position_dodge(width = 0.9), 
-            vjust = -0.1,  # Adjust vertical position of text
-            size = 2) +  # Smaller font size for the numbers
-  labs( 
-       x = "Catch Type", 
-       y = "Catch Data") +
+  geom_bar(stat = "identity", position = "dodge") + # Bar plot with grouped bars by country
+  geom_text(aes(label = paste(Country, ":\n", round(total_catch, 0))), # Newline between Country and catch number
+    position = position_dodge(width = 0.9),
+    vjust = -0.1, # Adjust vertical position of text
+    size = 2
+  ) + # Smaller font size for the numbers
+  labs(
+    x = "Catch Type",
+    y = "Catch Data (Thousands of Fish)"
+  ) +
   scale_y_continuous(labels = scales::comma) +
   theme_minimal() +
   theme(legend.title = element_blank())
-
 ```
-@fig-total_bar is a great way to analyse the different reasons why these fishes are caught. We narrowed the year to 2022 as we predict the fishing industry has recovered after covid and will show accurate results. Here we see that most fishes are caught due to commercial purposes where they sell the fish rather then for sporting or subsistence purposes. It also seems that Russia fishes the most out of the Norther Pacific region with its number being almost doubled from the second most country to fish, the US. Russia has fished around 309,142,000 fishes in the year 2022 next to US who has fished around 166,114,000. With these numbers, no wonder we see fluctuation in the number of fishes caught in @fig-long_comb.
+@fig-total_bar is a great way to analyse the different reasons why these fishes are caught. We narrowed the year to 2022 as we predict the fishing industry has recovered after COVID and will show accurate results. Here we see that most fishes are caught due to commercial purposes where they sell the fish rather then for sporting or subsistence purposes. It also seems that Russia fishes the most out of the Norther Pacific region with its number being almost doubled from the second most country to fish, the US. Russia has fished around 309,142,000 fishes in the year 2022 next to US who has fished around 166,114,000. With these numbers, no wonder we see fluctuation in the number of fishes caught in @fig-long_comb.
 
 
 
@@ -273,9 +286,9 @@ We predict that even thought 2 (may be 3) out of the 5 countries in the data set
 library(tidyr)
 library(rstanarm)
 
-#model_formula <- Catch ~ Year + (1 | Country)
+# model_formula <- Catch ~ Year + (1 | Country)
 
-#bayesian_model <- stan_glmer(
+# bayesian_model <- stan_glmer(
 #  formula = model_formula,
 #  data = long_data_combined,
 #  family = gaussian(),  # Adjust this if using a different distribution for your data
@@ -283,18 +296,56 @@ library(rstanarm)
 #  prior_intercept = normal(0, 2.5, autoscale = TRUE),
 #  seed = 123,
 #  adapt_delta = 0.95,
- # cores = 4
-#)
-#saveRDS(
+#  cores = 4
+# )
+# saveRDS(
 #  bayesian_model,
 #  file = "../models/bayesian_model1.rds"
-#)
+# )
 bayesian_model <-
   readRDS(file = here::here("models/bayesian_model1.rds"))
 ```
 
 
+### Sub Model
+This small model show cases the different rates of fishes caught per year for each country. It was a simple linear regression:
 
+$Catch = \beta_0 + \beta_1 Year$
+
+For each country. We will only look at the $\beta_1$ value in @tbl-eachCountry. 
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| label: tbl-eachCountry
+#| tbl-cap: "A Simple Linear Regression for Each Country"
+# Load necessary libraries
+library(dplyr)
+library(knitr)
+
+# Fit a linear model for each country and extract the slope (rate of change)
+rate_of_change <- long_data_combined %>%
+  group_by(Country) %>%
+  do(model = lm(Catch ~ Year, data = .)) %>% # Fit linear model per country
+  summarise(
+    country = Country,
+    rate_of_change = round(coef(model)[2], 2)
+  ) # Extract the slope and round to 2 decimals
+
+# Calculate the mean rate of change
+mean_rate_of_change <- round(mean(rate_of_change$rate_of_change), 2)
+
+# Add the mean rate of change as a new row
+rate_of_change_with_mean <- bind_rows(
+  rate_of_change,
+  tibble(country = "Mean", rate_of_change = mean_rate_of_change)
+)
+
+# Display the result using kable for a nicely formatted table
+kable(rate_of_change_with_mean, caption = "Rate of Change for Each Country (Including Mean)", digits = 2)
+```
 
 
 
@@ -316,7 +367,7 @@ Define $IsCommercial_{ij}$ to be the probability that the fishes caught were com
 - $\beta_0$  tells us the intercept so, what is the likelihood of it being commercial for a "baseline" country. This is essentially the average of all the intercepts for all the countries.  
 Note that this model doesn't look at the number of fishes caught rather the number of occurrences in the year 2022 where fishes were caught commercially. We focus on the year 2022 because it is recent data and modeling with all years between 1925 to 2023 would have not given us a result that was relevant to us. We would also loose information as the liklihood may have not been as high in the 1900s due to the lack of equipment. 
 
-We predict that the outcome or rather the probability that the fishes caught were commercially would be positive. This is because as we were looking at the graphs in the data section, we notice that @fig-total_bar shows most of the fishes caught were commercially and then as a sport and then as a subsistence. 
+We predict that the outcome or rather the probability that the fishes caught were commercially would be very high; we are expecting more than 50%. This is because as we were looking at the graphs in the data section, we notice that @fig-total_bar shows most of the fishes caught were commercially and then as a sport and then as a subsistence. 
 
 ```{r}
 #| echo: false
@@ -326,26 +377,26 @@ We predict that the outcome or rather the probability that the fishes caught wer
 library(brms)
 
 # Specify priors
-#priors <- c(
+# priors <- c(
 #  set_prior("normal(0, 2.5)", class = "Intercept"),   # Prior for the intercept
 #  set_prior("normal(0, 2.5)", class = "sd")           # Prior for the standard deviation of random effects (Country)
-#)
+# )
 
-#cleaned_pac2$Is_Commercial <- ifelse(cleaned_pac2$`Catch Type` == "Commercial", 1, 0)
+# cleaned_pac2$Is_Commercial <- ifelse(cleaned_pac2$`Catch Type` == "Commercial", 1, 0)
 
 # Fit the model using brms
-#bayesian_model_commercial_brms <- brm(
+# bayesian_model_commercial_brms <- brm(
 #  formula = Is_Commercial ~ (1 | Country),  # Random effect for Country
 #  data = cleaned_pac2,
 #  family = bernoulli(),                    # Bernoulli family for binary outcomes
 #  prior = priors,                          # Use the prior argument here
- # seed = 123
-#)
+# seed = 123
+# )
 
-#saveRDS(
+# saveRDS(
 #  bayesian_model_commercial_brms,
 #  file = "../models/bayesian_model2.rds"
-#)
+# )
 
 bayesian_model_commercial_brms <-
   readRDS(file = here::here("models/bayesian_model2.rds"))
@@ -395,8 +446,8 @@ In @tbl-modelSum-1 we see the model summary for Model 1 which was finding the pr
 #| warning: false
 #| message: false
 #| results: hide
-##| label: fig-randomInter
-##| fig-cap: "Distribution of Random Intercepts for Country"
+## | label: fig-randomInter
+## | fig-cap: "Distribution of Random Intercepts for Country"
 # Extract random effects for Country
 random_effects_df <- as.data.frame(ranef_bayesian_model_commercial_brms$Country)
 
@@ -404,16 +455,14 @@ random_effects_df <- as.data.frame(ranef_bayesian_model_commercial_brms$Country)
 names(random_effects_df)
 
 # Now, plot the distribution of the random intercepts for Country
-#library(ggplot2)
+# library(ggplot2)
 
-#ggplot(random_effects_df, aes(x = Estimate.Intercept)) + 
+# ggplot(random_effects_df, aes(x = Estimate.Intercept)) +
 #  geom_histogram(binwidth = 0.1, fill = "grey", color = "black", alpha = 0.7) +
 #  labs(
 #       x = "Random Intercept (Country)",
 #       y = "Frequency") +
 #  theme_minimal()
-
-
 ```
 
 
@@ -435,7 +484,7 @@ random_effects_df$Country <- rownames(random_effects_df)
 head(random_effects_df)
 
 # Extract the fixed intercept (the global intercept)
-fixed_intercept <- fixef(bayesian_model_commercial_brms)[1]  # First element corresponds to the intercept
+fixed_intercept <- fixef(bayesian_model_commercial_brms)[1] # First element corresponds to the intercept
 
 # Add the random intercepts to the fixed intercept to get the log-odds
 random_effects_df$log_odds <- fixed_intercept + random_effects_df$Estimate.Intercept
@@ -446,29 +495,46 @@ random_effects_df$predicted_prob <- 1 / (1 + exp(-random_effects_df$log_odds))
 # Plot the predicted probabilities for Commercial catches across countries
 library(ggplot2)
 
-ggplot(random_effects_df, aes(x = Country, y = predicted_prob)) + 
+ggplot(random_effects_df, aes(x = Country, y = predicted_prob)) +
   geom_bar(stat = "identity", fill = "grey", color = "black") +
-  geom_text(aes(label = round(predicted_prob, 2)), vjust = -0.5) +  # Add text labels rounded to 2 decimals
+  geom_text(aes(label = round(predicted_prob, 2)), vjust = -0.5) + # Add text labels rounded to 2 decimals
   labs(
-       x = "Country",
-       y = "Predicted Probability") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +  # Rotate country names for readability
+    x = "Country",
+    y = "Predicted Probability"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate country names for readability
   theme_minimal()
-
-
 ```
 
 We also calculate the predicted probability of a country fishing commercially for all 5 countries in the NPFAC. In @fig-predProb we see that Canada, US and Russia has a 40% probability that they fish commercially, Japan and Korea both have 97% probability. We will see why that is the case in the next section (@sec-disc).
 
 \newpage
 
+
 # Discussion {#sec-disc}
+We have shown a lot of graphs and the results from the graphs but now we will give context to the results and see where they come from. 
 
-## Story of the Data
+## What Is Done In This Paper? (A Summary)
+As we discussed in the data section, we have fluctuations in our @fig-long_comb and @fig-korea data because of the idea that when you fish too much, you leave less fish to repopulate the ecosystem and hence there is less fish in general. This causes the next couple years to have less fish in the ocean and hence less fish to hunt. This is what we investigate in the first model, @tbl-modelSum-2. Next we take a look at @fig-total_bar where we see that Russia is leading in the commercial fishing catagory for 2022. We also see that out of the 5 countries, all of them commercially fish more than they fish as a sport or subsistence. In fact Forbes Russia, documents the largest fishing organisations of Russia, highlighting their large fishing industry [@RussiaFishMajor]. The U.S. and Japan being second and third makes sense as U.S. is known for their booming economy due to them sharing the Pacific Ocean's coast with Japan. We predict the probability that a country is commercially fishing in the year 2022, in @fig-predProb. The country that catches the most fish is also shown in @ritchie2023fish.
+
+The more interesting part of the paper is the models we created. As mentioned earlier we created a model to see how many fishes were caught per year using a Bayesian Generalized Linear Mixture Model. We show the model summary in @tbl-modelSum-2, where we see that the intercept is at -1,367,355 which tells us that for a "baseline" country, at year 0, there were negative fishes caught. This logically doesn't make sense however. The reason why this number was outputted was because of the fact that all 5 countries have varying rates between how much fish will be caught per year, with some values being negative and some positive, some being very steep and others not. This is shown in @tbl-eachCountry. We see that the average of all of the rates in @tbl-eachCountry is 606 thousand fishes per year which is close to the 721.74 thousand fish per year that we get. The slight difference is because in @tbl-modelSum-2 we consider the year as well as the random effect of the country. Any how this summary of @tbl-modelSum-2 and @tbl-eachCountry perfectly aligns with the numbers we see in @fig-long_comb where we see that the rates are rising for Russia and U.S while decreasing for Japan, Korea and Canada. However, U.S and Russia have a higher rate, 2347 thousand fish per year and 1448 thousand fish per year respectively, which causes the overall positive rate in @tbl-modelSum-2. Regarding our prediction in @sec-mod1's model justification, we were correct as the rate of fish caught per year is indeed positive. this could be easily predicted from @fig-long_comb. 
+
+Another model we explored was what is the probability that a country fished for commercial purposes in 2022. This was shown in the model summary, @tbl-modelSum-1. This showed that the intercept is 0.84, which says that there is 69.8% chance that a "baseline" country has fished for commercial purposes in 2022. This goes with our prediction that the probability will be very high in @sec-mod2's model justification section. This makes sense as most countries do not fish tens of millions of fish just as food for the country. Especially the countries that are part of NPFAC. They are top providers of seafood to the global fish demand and hence it makes sense that they would fish commercially for the most part. 
+
+## What Does This Mean?
+There are both positive and negative conclusions that can be drawn from this data. 
+
+   The first biggest, and negative, point is the issues with sustainability and overfishing. @WPRFMC2024 shows us the catch limit of 3 out of the 5 NPFAC members; It shows the US, Japan and Korea. Japan has a catch limit of 18,000 metric ton of fish, Korea has 13,000 metric tonne, and U.S has 4,000 metric tonne (recorded for the year 2018 to 2021). On average 1 metric tonne of fish is around 11,000 fish so according to that Japan, Korea and U.S are allowed 198000000, 143000000, and 33000000 fish per year. A quick look at our data showed that there is 35173190, 95993, 118708471 fish caught in 2018. This means that Japan and Korea was the only one within that threshold, while U.S. exceeded it by a lot. We must also account for the demand of fish as well. the population of U.S is much larger then Korea and Japan, and the States must also supply the fish to other countries as well. @ritchie2023fish shows that, that catch limit can be adjusted according to the fish stock (amount of fish available) and the maximum amount you can catch without loosing on food and income. Although we keep this in account a difference of 85 million is too much for the ecosystem to handle. The reason NPFAC was formed was to keep these numbers under control. And this is only considering the U.S. and not Russia, the other fishing giant in the North Pacific. This was one of the main reasons why this paper was written. The anadromous fish population in the Pacific is important as they keep both the lower level of the food chain under control (such as smaller fish) while also providing food to the higher levels of the food chain (larger fish such as sharks). 
+   
+   The second aim of this paper is to see the dominant provider of the fish industry. Our data shows that Russia is by far the largest anadromous fish provider in the North Pacific but, @ritchie2023fish shows different as, it shows China is the biggest. The reason will be shown in @sec-weak. With that aside out of all the members of the NPFAC's we see that U.S. and Russia supply the most anadormous fish which is supported by @ritchie2023fish. 
 
 
-## Weaknesses and next steps
-Korea didn't report data until 1969 so they are left out of the first model in general. 
+## What Did We Miss? {#sec-weak}
+We struggled with the data as many of the values we not available. This makes sense as the data starts at 1925 and not everything has been recorded from 100 years. Korea didn't report data until 1969 so they are left out of the first model in general. 
+
+We are also missing a lot of countries that fish in the pacific such as Indonesia, and China who fish in the pacific as well. 
+
+Our next steps are to gather data from these countries as well and the same analysis on it to see if our results change. We would be looking at the same variables such as the rate of fish caught per year and the probability that a country was fishing commercially. Again we expect to see a positive rate and a high probability that a country was fishing commercially. 
 
 \newpage
 
@@ -563,22 +629,22 @@ library(ggplot2)
 
 # Assuming the model is already fitted with stan_glmer like this:
 # model_formula <- Catch ~ Year + (1 | Country)
-# bayesian_model <- stan_glmer(formula = model_formula, data = long_data_combined, family = gaussian(), 
-#                              prior = normal(0, 2.5, autoscale = TRUE), 
-#                              prior_intercept = normal(0, 2.5, autoscale = TRUE), 
+# bayesian_model <- stan_glmer(formula = model_formula, data = long_data_combined, family = gaussian(),
+#                              prior = normal(0, 2.5, autoscale = TRUE),
+#                              prior_intercept = normal(0, 2.5, autoscale = TRUE),
 #                              seed = 123, adapt_delta = 0.95, cores = 4)
 
 # Extract posterior predictions from the fitted model
 posterior_preds <- posterior_predict(bayesian_model)
 
 # Summarize the predictions (mean and credible intervals)
-mean_preds <- apply(posterior_preds, 2, mean)  # Mean of posterior predictions for each data point
-lower_ci <- apply(posterior_preds, 2, function(x) quantile(x, probs = 0.025))  # 95% lower credible interval
-upper_ci <- apply(posterior_preds, 2, function(x) quantile(x, probs = 0.975))  # 95% upper credible interval
+mean_preds <- apply(posterior_preds, 2, mean) # Mean of posterior predictions for each data point
+lower_ci <- apply(posterior_preds, 2, function(x) quantile(x, probs = 0.025)) # 95% lower credible interval
+upper_ci <- apply(posterior_preds, 2, function(x) quantile(x, probs = 0.975)) # 95% upper credible interval
 
 # Check the number of rows in the original data and posterior predictions
-print(nrow(long_data_combined))  # Should be 495 (or the correct number of rows)
-print(length(mean_preds))  # Should match the number of rows in long_data_combined
+print(nrow(long_data_combined)) # Should be 495 (or the correct number of rows)
+print(length(mean_preds)) # Should match the number of rows in long_data_combined
 
 # Handle potential mismatch in number of rows (e.g., due to missing values)
 # If there are any missing values, we can subset the data or remove rows with NAs
@@ -601,23 +667,25 @@ long_data_combined_clean$upper_ci <- upper_ci[1:nrow(long_data_combined_clean)]
 ggplot(long_data_combined_clean, aes(x = Country, y = mean_pred, fill = Country)) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +
   geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) +
-  labs(title = "Model Predictions by Country with 95% Credible Intervals", 
-       x = "Country", 
-       y = "Mean Prediction") +
+  labs(
+    title = "Model Predictions by Country with 95% Credible Intervals",
+    x = "Country",
+    y = "Mean Prediction"
+  ) +
   theme_minimal()
 
 # If you want to plot predictions over time (by Year) for each Country
 ggplot(long_data_combined_clean, aes(x = Year, y = mean_pred, color = Country)) +
   geom_point() +
   geom_line() +
-  facet_wrap(~ Country, scales = "free_y") +  # Facet by Country
+  facet_wrap(~Country, scales = "free_y") + # Facet by Country
   labs(title = "Predictions of Catch by Year and Country", x = "Year", y = "Mean Prediction") +
   theme_minimal()
 
 # Optionally, compute and visualize R-squared or other performance metrics
 # Compute R-squared
 observed_values <- long_data_combined_clean$Catch
-mse <- mean((observed_values - long_data_combined_clean$mean_pred)^2)  # Mean squared error
+mse <- mean((observed_values - long_data_combined_clean$mean_pred)^2) # Mean squared error
 r_squared <- 1 - sum((observed_values - long_data_combined_clean$mean_pred)^2) / sum((observed_values - mean(observed_values))^2)
 
 # Print MSE and R-squared
@@ -628,12 +696,13 @@ print(paste("R-squared:", r_squared))
 long_data_combined_clean$mse <- mse
 long_data_combined_clean$r_squared <- r_squared
 
-ggplot(random_effects_df, aes(x = Country, y = predicted_prob)) + 
+ggplot(random_effects_df, aes(x = Country, y = predicted_prob)) +
   geom_bar(stat = "identity", fill = "grey", color = "black") +
   labs(
-       x = "Country",
-       y = "Predicted Probability") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +  # Rotate country names for readability
+    x = "Country",
+    y = "Predicted Probability"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate country names for readability
   theme_minimal()
 ```
 

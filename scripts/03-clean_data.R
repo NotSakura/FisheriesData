@@ -37,6 +37,27 @@ cleaned_pac <- data %>%
 cleaned_pac
 
 
+combined_data <- combined_data %>%
+  mutate(across(`1925`:`2023`, as.numeric))
+koreadata <- koreadata %>%
+  mutate(across(`1925`:`2023`, as.numeric))
+
+combined_data <- combined_data  %>%
+  select(-`Whole Country/Province/State`, -`Data Type`, -`Reporting Area`, -Species, -`Catch Type`)
+koreadata <- koreadata  %>%
+  select(-`Whole Country/Province/State`, -`Data Type`, -`Reporting Area`, -Species, -`Catch Type`)
+
+long_data_combined <- combined_data %>%
+  pivot_longer(
+    cols = starts_with("19") | starts_with("20"),  # Select columns starting with "19" or "20"
+    names_to = "Year",
+    values_to = "Catch"
+  ) %>%
+  mutate(Year = as.numeric(Year))
+
+write_csv(long_data_combined, "./data/02-analysis_data/clean_long_data_combined.csv")
+arrow::write_parquet(long_data_combined, "./data/02-analysis_data/clean_long_data_combined.csv")
+
 #### Save data ####
 write_csv(cleaned_pac, "./data/02-analysis_data/cleaned_pacific_allyear.csv")
 arrow::write_parquet(cleaned_pac, "./data/02-analysis_data/cleaned_pacific_allyear.parquet")
